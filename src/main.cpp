@@ -92,33 +92,33 @@ void plotPixel(int x1, int y1, int x2, int y2, int decide)
         std::cout << x1 << "," << y1 << std::endl;
         //checking either to decrement or increment the value
         //if we have to plot from (0,100) to (100,0)
-        x1 < x2 ? x1++ : x1--;
+        x1 < x2 ? x1+=20 : x1-=20;
         if (pk < 0)
         {
             //decision value will decide to plot
             //either  x1 or y1 in x's position
             if (decide == 0)
             {
-               putpixel(x1, y1, RED);
+               bar(x1,y1,x1+20,y1+20);
             }
             else
             {
                 //(y1,x1) is passed in xt
-               putpixel(y1, x1, YELLOW);
+               bar(y1,x1,x1+20,y1+20);
                 pk = pk + 2 * dy;
             }
         }
         else
         {
-            y1 < y2 ? y1++ : y1--;
+            y1 < y2 ? y1+=20 : y1-=20;
             if (decide == 0)
             {
  
-                putpixel(x1, y1, RED);
+               bar(y1,x1,x1+20,y1+20);
             }
             else
             {
-               putpixel(y1, x1, YELLOW);
+               bar(y1,x1,x1+20,y1+20);
             }
             pk = pk + 2 * dy - 2 * dx;
         }
@@ -138,6 +138,13 @@ void b_circle(Vec2& p1,int r){
       }
    }
 }
+
+
+
+void draw(){
+
+}
+
 
 int main()
 {
@@ -171,12 +178,8 @@ int main()
       line(i*w,0,i*w,HEIGHT);
    }
 
-   // rect(grid[5][5],grid[6][6]);
-   // b_line(grid[1][1],grid[10][20]);
-   plotPixel(10,10,500,200,1);
-
+   b_line(grid[1][1],grid[10][20]);
 
    getch();
-   // closegraph();
    return 0;
 }

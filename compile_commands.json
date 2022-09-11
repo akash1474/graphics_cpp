@@ -3,20 +3,28 @@
   "directory": "D:\\Programs\\c++\\graphics",
   "arguments": [
    "g++",
-   "main.cpp",
-   "-o",
-   "main",
-   "-lbgi",
-   "-lgdi32",
-   "-lcomdlg32",
-   "-luuid",
-   "-loleaut32",
-   "-lole32",
    "-std=c++17",
    "-I./include",
-   "-L./lib"
+   "-L./lib",
+   "-c",
+   "-o",
+   "src/main.o",
+   "src/main.cpp"
   ],
-  "file": "main.cpp"
+  "file": "src/main.cpp"
+ },
+ {
+  "directory": "D:\\Programs\\c++\\graphics",
+  "arguments": [
+   "g++",
+   "-std=c++17",
+   "-I./include",
+   "-L./lib",
+   "-c",
+   "-o",
+   "src/matrix.o",
+   "src/matrix.cpp"
+  ],
+  "file": "src/matrix.cpp"
  }
-]
-
+]
