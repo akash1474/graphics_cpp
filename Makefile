@@ -7,9 +7,9 @@ OPT=$(INCLUDES) -std=c++17 -g -Wall -MP -MMD -lm -lbgi -lgdi32 -lcomdlg32 -luuid
 
 all:$(OBJECTS)
 	@echo -e main.exe
-	@g32 $(OBJECTS) $(OPT)  -o main
+	@g32 $(OBJECTS) $(OPT)  -o ./bin/main
 	@echo -e Running
-	@main.exe
+	@./bin/main.exe
 
 
 -include $(DEPFILES)
@@ -19,10 +19,8 @@ all:$(OBJECTS)
 	@g32 -std=c++17 $(INCLUDES) -c -o $@ $<
 
 clean:
-	@echo -e *.o
-	@echo -e *.d
-	@rm -r *.o *.d *.exe
+	@rm -r ./src/*.o ./bin/*.exe
 
 run:
 	@echo -e Running...
-	main.exe
+	@./bin/main.exe

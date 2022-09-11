@@ -12,7 +12,9 @@ Matrix::Matrix(int r,int c,double v):rows{r},cols{c}{
 		for(int j=0;j<this->cols;j++){
 			this->data[i][j]=v;
 		}
+		this->data[i].shrink_to_fit();
 	}
+	this->data[0].shrink_to_fit();
 }
 
 Matrix::Matrix(std::vector<std::vector<double>> vec){
