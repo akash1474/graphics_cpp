@@ -1,4 +1,5 @@
-INCLUDES=-I./include -L./lib
+PERLIN_NOISE=D:/Projects/c++/cpp_modules/PerlinNoise
+INCLUDES=-I./include -I$(PERLIN_NOISE) -L./lib
 SRC_DIR=$(wildcard ./src/*.cpp)
 OBJECTS:=$(patsubst %.cpp,%.o,$(SRC_DIR))
 DEPFILES:=$(patsubst %.cpp,%.d,$(SRC_DIR))

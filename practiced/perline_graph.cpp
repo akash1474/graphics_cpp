@@ -44,13 +44,7 @@ int main()
             putpixel(x,ny*HEIGHT,WHITE);
             isFirst=false;
          }else{
-            float tx=x*8;
-            float ty=ny*HEIGHT;
-            line(prev.x,prev.y,tx,ty);
-            setcolor(COLOR(108,196,161));
-            line(tx,ty,tx,HEIGHT);
-            setcolor(WHITE);
-            // line(prev.x,prev.y+10,x*8,ny*HEIGHT);
+            line(prev.x,prev.y,x*8,ny*HEIGHT);
          }
          prev.x=x*8;
          prev.y=ny*HEIGHT;

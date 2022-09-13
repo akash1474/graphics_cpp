@@ -2,9 +2,9 @@
  {
   "directory": "D:\\Programs\\c++\\graphics",
   "arguments": [
-   "g++",
    "-std=c++17",
    "-I./include",
+   "-ID:/Projects/c++/cpp_modules/PerlinNoise",
    "-L./lib",
    "-c",
    "-o",
@@ -16,9 +16,9 @@
  {
   "directory": "D:\\Programs\\c++\\graphics",
   "arguments": [
-   "g++",
    "-std=c++17",
    "-I./include",
+   "-ID:/Projects/c++/cpp_modules/PerlinNoise",
    "-L./lib",
    "-c",
    "-o",
