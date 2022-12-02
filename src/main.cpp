@@ -2,8 +2,15 @@
 #include "graphics.h"
 #include <algorithm>
 #include <deque>
+#include <fstream>
 #include <iomanip>
+#include <sstream>
+#include <stdint.h>
 #include "queue"
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image.h"
+
 
 struct Vec2{
     int x=0,y=0;
@@ -60,17 +67,6 @@ struct Object{
 };
 
 
-//Drawing the animated Lanes moving down
-struct Lane{
-
-};
-
-
-//Drawing shrubs on the side lane
-struct Shrubs{
-
-};
-
 struct Objects{
     std::deque<Object> objects;
     int speed=0;
@@ -94,11 +90,10 @@ struct Objects{
         std::for_each(objects.begin(), objects.end(),[&](Object& obj){
             obj.draw();
         });
-        setcolor(WHITE);
     }
 
     bool detect_collision(const Car& car){
-        static bool collision=false;
+        bool collision=false;
         std::for_each(objects.begin(), objects.end(),[&](Object& obj){
             bool c1=obj.pos.x < car.pos.x+car.width;
             bool c2=obj.pos.x+obj.width > car.pos.x;
@@ -110,11 +105,99 @@ struct Objects{
     }
 };
 
+
+
+//Drawing the animated Lanes moving down
+struct Lane{
+    Vec2 pos;
+    int width=7,height=50;
+
+    void render(){
+        setcolor(WHITE);
+        rect(pos.x-(width/2),pos.y,pos.x+width-(width/2),pos.y+height);
+    }
+
+    void update(const int speed){
+        pos.y+=speed;
+    }
+};
+
+struct Lanes{
+    std::deque<Lane> lanes;
+    int speed=1;
+
+    void push(Lane& lane){
+        lanes.push_front(lane);
+        if(lanes.size()>18) lanes.pop_back();
+    }
+
+    void update(int y_max){
+        std::for_each(lanes.begin(), lanes.end(),[&](Lane& lane){
+            if((lane.pos.y-(lane.height*2))> y_max) lane.pos.y=-2*lane.height;
+            lane.update(speed);
+        });
+    }
+
+    void init_lanes(int m_LaneCount,int laneX1,int laneX2){
+        int x=-180; 
+        for(int i=0;i<m_LaneCount;i++){
+            Lane lane1;
+            Lane lane2;
+            lane1.pos.x=laneX1;
+            lane2.pos.x=laneX2;
+            lane1.pos.y=x;
+            lane2.pos.y=x;
+            lanes.push_front(lane1);
+            lanes.push_front(lane2);
+            x+=90;
+        }
+    }
+
+
+    void render(){
+        std::for_each(lanes.begin(), lanes.end(),[&](Lane& lane){
+            lane.render();
+        });
+    }
+
+};
+
+
+//Drawing shrubs on the side lane
+struct Shrubs{
+    Vec2 pos;
+    int px_Size=4;
+    int x,y,n;
+    unsigned char *data;
+
+    Shrubs(){
+        data = stbi_load("./shrub.png", &x, &y, &n, 0);
+    }
+
+    void render(){
+        for(int i=0;i<y;i++){
+            for(int j=0;j<x;j++){
+                unsigned char* offset=data+(i + y * j) * n;
+                int r=(int)offset[0];
+                int g=(int)offset[1];
+                int b=(int)offset[2];
+                // setcolor(COLOR(r,g,b));
+                // rect(pos.x+j*px_Size,pos.y+i*px_Size,pos.x+(j+1)*px_Size,pos.y+(i+1)*px_Size);
+                putpixel(i,j,COLOR(r,g,b));
+            }
+        }
+        setcolor(WHITE);
+    }
+};
+
+
 class GameEngine{
     Car m_Car;
     Window m_Window;
     Boundary m_Boundary;
     Objects m_Objects;
+    Lanes m_Lanes;
+    // Shrubs shrubs;
     int m_LaneWidth;
     int m_SideWidth=40;
     int m_SpawnDistance=20;
@@ -122,20 +205,30 @@ class GameEngine{
     int m_Page=0;
     State m_GameState;
     bool m_GameEnded=false;
+    int m_StripDistance=50;
     int m_Fps=60;
+    bool m_DetectCollision=true;
+    uint16_t m_Score=0;
+    unsigned int m_Incrementor=1;
 public:
-
     GameEngine(){
         m_GameState=State::MENU;
         get_window_dimensions();
         init_boundary();
         init_car();
         m_LaneWidth=(m_Window.width-(2*m_SideWidth))/3;
-        m_Objects.speed=10;
+        m_Objects.speed=20;
         init_object();
+        m_Lanes.init_lanes(18, m_Boundary.min.x+m_LaneWidth,m_Boundary.min.x+(m_LaneWidth*2));
+        m_Lanes.speed=20;
+        // shrubs.pos.x=0;
+        // shrubs.pos.y=0;
     }
 
+
     void game_restart(){
+        uint8_t m_Score=0;
+        unsigned int m_Incrementor=1;
         m_Objects.objects.clear();
         init_car();
         init_object();
@@ -150,7 +243,6 @@ public:
         return rand() % (to - from + 1) + from;
     }
 
-
     void init_car(){
         m_Car.velocity.x=25;
         m_Car.velocity.y=25;
@@ -159,6 +251,7 @@ public:
     }
 
     void init_object(){
+        m_Count=0;
         m_Objects.push(generate_object());
     }
 
@@ -167,11 +260,9 @@ public:
         m_Count++;
     }
 
-
-
-
     Object generate_object(){
         Object obj;
+        obj.pos.y=-obj.height;
         int offset=m_Boundary.min.x-((m_LaneWidth+obj.width)/2);
         switch(random(0,2)){
             case 0:
@@ -202,18 +293,10 @@ public:
     }
 
 
-
-    void render_lanes(){
-        setlinestyle(DASHED_LINE,10,3);
-        line(m_Boundary.min.x+m_LaneWidth,0,m_Boundary.min.x+m_LaneWidth,m_Window.height);
-        line(m_Boundary.min.x+(m_LaneWidth*2),0,m_Boundary.min.x+(m_LaneWidth*2),m_Window.height);
-        setlinestyle(SOLID_LINE, 0, 1);
-    }
-
     void event_listener(){
         if(kbhit()){
-            static int vec=0;
-            static int* prev=NULL;
+            // static int vec=0;
+            // static int* prev=NULL;
             switch(getch()){
                 case (int)'d': //right
                     if(m_Car.pos.x+m_Car.width+m_Car.velocity.x >= m_Boundary.max.x){
@@ -248,10 +331,10 @@ public:
                 //     m_Car.pos.y+=m_Car.velocity.x;
                 //     // vec-=5;
                 //     break;
-                default:
-                    *prev+=1;
-                    if(vec>0) vec--;
-                    if(vec<0) vec=0;
+                // default:
+                    // *prev+=1;
+                    // if(vec>0) vec--;
+                    // if(vec<0) vec=0;
                     // m_Car.pos.y++;
             }
         }
@@ -266,6 +349,7 @@ public:
         setcolor(WHITE);
     }
 
+
     void render_car(){
         // readimagefile("car.jpg",m_Car.pos.x,m_Car.pos.y,m_Car.pos.x+m_Car.pos.width,m_Car.pos.y+m_Car.height);
         bar(m_Car.pos.x,m_Car.pos.y,m_Car.pos.x+m_Car.width,m_Car.pos.y+m_Car.height);
@@ -276,6 +360,22 @@ public:
     void debug(){
         std::cout << m_Window.width << std::endl;
         std::cout << m_Window.height << std::endl;
+    }
+
+
+    void render_score(){
+        static std::ostringstream oss;
+        static bool shouldIncrement=false;
+        if(shouldIncrement){ m_Incrementor+=2; shouldIncrement=false;}
+        if(m_Score % 100 == 0) {shouldIncrement=true; m_Objects.speed+=2;}
+        if(m_Score % 1000 == 0) {shouldIncrement=true; m_Objects.speed+=2;}
+        oss.clear();
+        oss.str("");
+        oss << "Score: " << std::to_string(m_Score) << std::endl;
+        setcolor(COLOR(0,108,255));
+        rect(0,m_Window.height-35,m_Window.width,m_Window.height);
+        centered_text(m_Window,oss.str().c_str(),m_Window.height-25);
+        m_Score+=m_Incrementor;
     }
 
     void render_menu(){
@@ -292,23 +392,26 @@ public:
     }
 
     void render_game(){
-        // setfillstyle(SOLID_FILL, BLACK);
         event_listener();
         spawn_object();
+        m_Lanes.update(m_Window.height);
         m_Objects.update(m_Window.height);
+        m_Lanes.render();
         m_Objects.render();
-        if(m_Objects.detect_collision(m_Car)) m_GameState=State::ENDED;
-        render_lanes();
+        if(m_DetectCollision && m_Objects.detect_collision(m_Car)) m_GameState=State::ENDED;
+        render_score();
         render_car();
         generate_object();
         render_grass();
+        // shrubs.render();
     }
 
     void render_end(){
-        outtextxy(50, 50,(char*)"Game Over");
+        centered_text(m_Window, "Game Over",m_Window.height/2);
+        centered_text(m_Window, std::to_string(m_Score).c_str(),m_Window.height/2+20);
         if(kbhit() && getch()==' '){
-            m_GameState=State::PLAYING;
             game_restart();
+            m_GameState=State::PLAYING;
         }
     }
 
