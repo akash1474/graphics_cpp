@@ -2,14 +2,8 @@
 #include "graphics.h"
 #include <algorithm>
 #include <deque>
-#include <fstream>
-#include <iomanip>
 #include <sstream>
 #include <stdint.h>
-#include "queue"
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image.h"
 
 
 struct Vec2{
@@ -27,7 +21,8 @@ struct Car{
     Vec2 velocity;
 
     void draw(){
-        //
+        bar(pos.x,pos.y,pos.x+width,pos.y+height);
+        floodfill(pos.x+10,pos.y+10,WHITE);
     }
 };
 
@@ -162,35 +157,6 @@ struct Lanes{
 
 };
 
-
-//Drawing shrubs on the side lane
-struct Shrubs{
-    Vec2 pos;
-    int px_Size=4;
-    int x,y,n;
-    unsigned char *data;
-
-    Shrubs(){
-        data = stbi_load("./shrub.png", &x, &y, &n, 0);
-    }
-
-    void render(){
-        for(int i=0;i<y;i++){
-            for(int j=0;j<x;j++){
-                unsigned char* offset=data+(i + y * j) * n;
-                int r=(int)offset[0];
-                int g=(int)offset[1];
-                int b=(int)offset[2];
-                // setcolor(COLOR(r,g,b));
-                // rect(pos.x+j*px_Size,pos.y+i*px_Size,pos.x+(j+1)*px_Size,pos.y+(i+1)*px_Size);
-                putpixel(i,j,COLOR(r,g,b));
-            }
-        }
-        setcolor(WHITE);
-    }
-};
-
-
 class GameEngine{
     Car m_Car;
     Window m_Window;
@@ -227,8 +193,8 @@ public:
 
 
     void game_restart(){
-        uint8_t m_Score=0;
-        unsigned int m_Incrementor=1;
+        m_Score=0;
+        m_Incrementor=1;
         m_Objects.objects.clear();
         init_car();
         init_object();
@@ -350,17 +316,12 @@ public:
     }
 
 
-    void render_car(){
-        // readimagefile("car.jpg",m_Car.pos.x,m_Car.pos.y,m_Car.pos.x+m_Car.pos.width,m_Car.pos.y+m_Car.height);
-        bar(m_Car.pos.x,m_Car.pos.y,m_Car.pos.x+m_Car.width,m_Car.pos.y+m_Car.height);
-        floodfill(m_Car.pos.x+10,m_Car.pos.y+10,WHITE);
-    }
-
-
+    #ifndef BUILD_RELEASE
     void debug(){
         std::cout << m_Window.width << std::endl;
         std::cout << m_Window.height << std::endl;
     }
+    #endif
 
 
     void render_score(){
@@ -380,12 +341,10 @@ public:
 
     void render_menu(){
         int x=0;
-        settextstyle(10,0,3);
-        centered_text(m_Window,"RACE CAR",m_Window.height/2); x+=40;
+        settextstyle(10,0,4);
+        centered_text(m_Window,"DOGER",m_Window.height/2); x+=40;
         settextstyle(10,0,2);
-        centered_text(m_Window,"Start",m_Window.height/2+x); x+=20;
-        centered_text(m_Window,"High Score",m_Window.height/2+x);x+=20;
-        centered_text(m_Window,"Exit",m_Window.height/2+x);
+        centered_text(m_Window,"Press Space to start",m_Window.height/2+x); x+=20;
         if(kbhit() && getch()==' '){
             m_GameState=State::PLAYING;
         }
@@ -400,10 +359,9 @@ public:
         m_Objects.render();
         if(m_DetectCollision && m_Objects.detect_collision(m_Car)) m_GameState=State::ENDED;
         render_score();
-        render_car();
+        m_Car.draw();
         generate_object();
         render_grass();
-        // shrubs.render();
     }
 
     void render_end(){
@@ -430,7 +388,9 @@ public:
     }
 
     void run(){
+        #ifndef BUILD_RELEASE
         debug();
+        #endif
         while(!m_GameEnded){
             setactivepage(m_Page);
             setvisualpage(1-m_Page);
@@ -446,8 +406,7 @@ public:
 
 
 int main(){
-    int gd=DETECT,gm;
-    int win=initwindow(400, 600);
+    int win=initwindow(400, 600,"Doger");
     setcurrentwindow(win);
     GameEngine engine;
     engine.run();

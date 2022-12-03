@@ -1,0 +1,24 @@
+id ICON "./logo2.ico"
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "_blank Coperation"
+      VALUE "FileDescription", "Game Build by _blank using graphics library on mingw_x86(10.3.0)"
+      VALUE "FileVersion", "1.0.0"
+      VALUE "InternalName", "Doger"
+      VALUE "LegalCopyright", "yes"
+      VALUE "OriginalFilename", "Doger.exe"
+      VALUE "ProductName", "Doger"
+      VALUE "ProductVersion", "1.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
