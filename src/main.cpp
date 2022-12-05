@@ -2,8 +2,11 @@
 #include "graphics.h"
 #include <algorithm>
 #include <deque>
+#include <iomanip>
 #include <sstream>
 #include <stdint.h>
+#include <stdlib.h>
+#include "math.h"
 
 
 struct Vec2{
@@ -15,14 +18,48 @@ struct Window{
     int width,height;
 };
 
+int random(int from, int to){
+    return rand() % (to - from + 1) + from;
+}
+
+inline float transitionFn(float& x){
+    return (float)(x == 1 ? 1 : 1 - pow(2, -10 * x));   
+};
+
+inline void rect(int x,int y,int x_max,int y_max){
+    for(int i=x;i<=x_max;i++){
+        line(i,y,i,y_max);
+    }
+}
+
+
 struct Car{
     Vec2 pos;
     int width=50,height=90;
     Vec2 velocity;
+    int arr[14];
 
     void draw(){
-        bar(pos.x,pos.y,pos.x+width,pos.y+height);
-        floodfill(pos.x+10,pos.y+10,WHITE);
+        // bar(pos.x,pos.y,pos.x+width,pos.y+height);
+        // floodfill(pos.x+10,pos.y+10,WHITE);
+      arr[0]=pos.x;
+      arr[1]=pos.y+10;
+      arr[2]=pos.x+15;
+      arr[3]=pos.y;
+      arr[4]=pos.x+35;
+      arr[5]=pos.y;
+      arr[6]=pos.x+width;
+      arr[7]=pos.y+10;
+      arr[8]=pos.x+width;
+      arr[9]=pos.y+height;
+      arr[10]=pos.x;
+      arr[11]=pos.y+height;
+      arr[12]=pos.x;
+      arr[13]=pos.y+10;
+      setfillstyle(SOLID_FILL,WHITE);
+      fillpoly(7, arr);
+      setcolor(BLACK);
+      rect(pos.x+10,pos.y+50,pos.x+5,pos.y+height);
     }
 };
 
@@ -31,11 +68,6 @@ struct Boundary{
     Vec2 max;
 };
 
-inline void rect(int x,int y,int x_max,int y_max){
-    for(int i=x;i<=x_max;i++){
-        line(i,y,i,y_max);
-    }
-}
 
 inline void centered_text(const Window& win,const char* text,int y){
     outtextxy((win.width-textwidth((char*)text))/2, y,(char*)text);
@@ -51,13 +83,29 @@ enum class State{
 struct Object{
     Vec2 pos;
     int width=50,height=90;
+    int arr[14];
+    int fill=1;
 
     void update(const int& speed){
         pos.y+=speed;
     }
 
     void draw(){
-        rect(pos.x,pos.y,pos.x+width,pos.y+height);
+      arr[0]=pos.x;
+      arr[1]=pos.y+10;
+      arr[2]=pos.x+15;
+      arr[3]=pos.y;
+      arr[4]=pos.x+35;
+      arr[5]=pos.y;
+      arr[6]=pos.x+width;
+      arr[7]=pos.y+10;
+      arr[8]=pos.x+width;
+      arr[9]=pos.y+height;
+      arr[10]=pos.x;
+      arr[11]=pos.y+height;
+      arr[12]=pos.x;
+      arr[13]=pos.y+10;
+      fillpoly(7, arr);
     }
 };
 
@@ -81,8 +129,8 @@ struct Objects{
     }
 
     void render(){
-        setcolor(RED);
         std::for_each(objects.begin(), objects.end(),[&](Object& obj){
+            setfillstyle(SOLID_FILL,obj.fill);
             obj.draw();
         });
     }
@@ -183,10 +231,10 @@ public:
         init_boundary();
         init_car();
         m_LaneWidth=(m_Window.width-(2*m_SideWidth))/3;
-        m_Objects.speed=20;
+        m_Objects.speed=10;
         init_object();
         m_Lanes.init_lanes(18, m_Boundary.min.x+m_LaneWidth,m_Boundary.min.x+(m_LaneWidth*2));
-        m_Lanes.speed=20;
+        m_Lanes.speed=30;
         // shrubs.pos.x=0;
         // shrubs.pos.y=0;
     }
@@ -196,6 +244,7 @@ public:
         m_Score=0;
         m_Incrementor=1;
         m_Objects.objects.clear();
+        m_Objects.speed=10;
         init_car();
         init_object();
     }
@@ -204,10 +253,6 @@ public:
         m_Fps=fps;
     }
 
-
-    int random(int from, int to){
-        return rand() % (to - from + 1) + from;
-    }
 
     void init_car(){
         m_Car.velocity.x=25;
@@ -229,6 +274,7 @@ public:
     Object generate_object(){
         Object obj;
         obj.pos.y=-obj.height;
+        obj.fill=random(1,12);
         int offset=m_Boundary.min.x-((m_LaneWidth+obj.width)/2);
         switch(random(0,2)){
             case 0:
@@ -341,13 +387,19 @@ public:
 
     void render_menu(){
         int x=0;
+        static float anim_y=0;
         settextstyle(10,0,4);
-        centered_text(m_Window,"DOGER",m_Window.height/2); x+=40;
+        int val=255*transitionFn(anim_y);
+        setcolor(COLOR(val,val,val));
+        centered_text(m_Window,"DOGER",(m_Window.height/2)*transitionFn(anim_y)); x+=40;
         settextstyle(10,0,2);
-        centered_text(m_Window,"Press Space to start",m_Window.height/2+x); x+=20;
+        centered_text(m_Window,"Press Space to start",(m_Window.height/2+x)); x+=20;
         if(kbhit() && getch()==' '){
             m_GameState=State::PLAYING;
+            anim_y=0;
         }
+        if(anim_y <=1.0) anim_y+=0.05;
+        delay(20);
     }
 
     void render_game(){

@@ -7,10 +7,11 @@ BEGIN
   BEGIN
     BLOCK "080904E4"
     BEGIN
-      VALUE "CompanyName", "_blank Coperation"
+      VALUE "CompanyName", "Deadlock Coperation"
       VALUE "FileDescription", "Game Build by _blank using graphics library on mingw_x86(10.3.0)"
       VALUE "FileVersion", "1.0.0"
       VALUE "InternalName", "Doger"
+      VALUE "Build Date", "05/12/2022"
       VALUE "LegalCopyright", "yes"
       VALUE "OriginalFilename", "Doger.exe"
       VALUE "ProductName", "Doger"
