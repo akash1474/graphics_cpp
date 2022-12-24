@@ -391,7 +391,7 @@ public:
         settextstyle(10,0,4);
         int val=255*transitionFn(anim_y);
         setcolor(COLOR(val,val,val));
-        centered_text(m_Window,"DOGER",(m_Window.height/2)*transitionFn(anim_y)); x+=40;
+        centered_text(m_Window,"RACE CAR",(m_Window.height/2)*transitionFn(anim_y)); x+=40;
         settextstyle(10,0,2);
         centered_text(m_Window,"Press Space to start",(m_Window.height/2+x)); x+=20;
         if(kbhit() && getch()==' '){
